@@ -1,0 +1,1 @@
+import { CacheCanvasOffset, cacheCanvasMargin } from "../renderer";

@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "automerge": "^1.0.1-preview.7",
+    "babel-polyfill": "^6.26.0",
+    "express": "^4.17.2",
+    "it-pipe": "^1.1.0",
+    "js-treeview": "^1.1.5",
+    "lit": "^2.2.5",
+    "socket.io": "^4.4.0",
+    "socket.io-client": "^4.4.0",
+    "typescript": "^4.5.4",
+    "uuid": "^3.4.0"
+  },
+  "devDependencies": {
+    "buffer": "^6.0.3",
+    "parcel": "^2.6.0",
+    "perfect-freehand": "^1.0.16"
+  }
+}
