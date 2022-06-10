@@ -1,12 +1,10 @@
 import { SceneGraph, SceneGraphNode } from "../scene_graph/scene_graph";
 import { AutomergeSceneGraph } from "../scene_graph/automerge_scene_graph";
 import { AutomergeSceneGraphSynchronizer } from "../scene_graph/automerge_synchronizer";
-import { LocalSceneGraph } from "../scene_graph/local_scene_graph";
 import { LayoutData, LayoutNode } from "./nodes";
 import { Root } from "./nodes/root";
 import { Binding } from "./nodes/binding";
 import { Page } from "./nodes/page";
-import { Transform } from "./nodes/transform";
 import { Group } from "./nodes/group";
 import { Rectangle } from "./nodes/rectangle";
 import { Circle } from "./nodes/circle";

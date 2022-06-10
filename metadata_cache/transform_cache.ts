@@ -1,5 +1,5 @@
 import { MetadataCache } from "./metadata_cache";
-import { Layout, LayoutSceneGraph } from "../layout/layout";
+import { Layout } from "../layout/layout";
 import { LayoutNode, BindingNode, PageNode, TransformNode } from "../layout/nodes";
 import { BindingSystem } from "../layout/binding_system";
 import { BookBinding } from "../layout/binding_systems/book";

@@ -122,12 +122,15 @@ export class LayoutViewport extends LitElement {
 
     }
 
+    _onWheel(event: WheelEvent): void {
+
+    }
 
     render() {
         this.#calculateTransforms();
 
         return html`
-            <canvas @pointerdown=${this._onPointerDown} @pointermove=${this._onPointerMove}>
+            <canvas @pointerdown=${this._onPointerDown} @pointermove=${this._onPointerMove} @wheel=${this._onWheel}>
                 <slot></slot>
             </canvas>
         `

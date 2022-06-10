@@ -1,4 +1,4 @@
-import { SceneGraph, SceneGraphSystem } from "./scene_graph";
+import { SceneGraphSystem } from "./scene_graph";
 import { AutomergeSceneGraph, SceneGraphDocument } from "./automerge_scene_graph";
 import { UUID } from "./scene_graph";
 
@@ -14,7 +14,7 @@ export class AutomergeSceneGraphSynchronizer implements SceneGraphSystem {
     initialize(sceneGraph: AutomergeSceneGraph) {
         this.#sceneGraph = sceneGraph;
 
-        this.#socket = io("http://galene.jj:3000");
+        this.#socket = io("http://localhost:3000");
         this.#socket.on("sync", this.#receiveSync.bind(this));
         this.#socket.on("peerList", this.#updatePeerList.bind(this));
         this.#socket.emit("auth", {

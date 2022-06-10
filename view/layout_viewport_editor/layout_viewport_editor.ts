@@ -7,6 +7,10 @@ import { LayoutNode } from "../../layout/nodes";
 import { BoundingRectangle, Vector } from "../../util/math";
 import { ToolManager } from "./tools/manager";
 
+const settings = {
+    zoomFactor: 1.0
+}
+
 type PointerButtonState = {
     down: boolean,
     drag: boolean
@@ -135,8 +139,6 @@ export class LayoutViewportEditor extends LayoutViewport {
     set layout(layout: Layout) {
         super.layout = layout;
 
-        ///this._canvasElement.addEventListener("pointerdown", this.#onPointerDown.bind(this));
-        ///this._canvasElement.addEventListener("pointermove", this.#onPointerMove.bind(this));
         this.#onPointerUpHandler = this.#onPointerUp.bind(this);
         //this._canvasElement.addEventListener("wheel", this.#onWheel.bind(this));
         //this._canvasElement.addEventListener("keydown", this.#onKeyDown.bind(this));
@@ -170,8 +172,6 @@ export class LayoutViewportEditor extends LayoutViewport {
     }
 
     _onPointerDown(event: PointerEvent): void {
-        console.log("down");
-
         this.#updatePointerState(event);
 
         if (event.button == 0) {
@@ -184,8 +184,6 @@ export class LayoutViewportEditor extends LayoutViewport {
     }
 
     _onPointerMove(event: PointerEvent): void {
-        console.log("move")
-
         if (this.#pointer.primary.down) {
             const isDragStart = !this.#pointer.primary.drag;
             if (isDragStart) {
@@ -198,14 +196,11 @@ export class LayoutViewportEditor extends LayoutViewport {
     }
 
     #onPointerUp(event: PointerEvent): void {
-        console.log("up");
-
         this.#updatePointerState(event);
 
         if (event.button == 0) {
             if (!this.#pointer.primary.drag) {
                 this.#pointer.position.changedSinceLastFrame = false;
-                console.log("dispatch click")
                 this.dispatchEvent(createEditorEvent("editor:click", this.#pointer));
             } else {
                 this.#pointer.position.changedSinceLastFrame = false;
@@ -220,7 +215,7 @@ export class LayoutViewportEditor extends LayoutViewport {
         document.body.removeEventListener("pointerup", this.#onPointerUpHandler);
     }
 
-    /*#onWheel(event: WheelEvent): void {
+    _onWheel(event: WheelEvent): void {
         event.preventDefault();
 
         let delta = event.deltaY;
@@ -234,12 +229,16 @@ export class LayoutViewportEditor extends LayoutViewport {
 
         const minZoom = 0.5 * this._calculateZoomToFit(this._sceneGraph.getNode(this._sceneGraph.rootNodeId) as LayoutNode);
 
-        this.viewportZoom = Math.max(minZoom, this.viewportZoom - delta * this.viewportZoom);
-        this.viewportWorld = this.#pointer.position.world;
-        this.viewportScreen = this.#pointer.position.viewport;
+        this.zoom = Math.max(minZoom, this.zoom - delta * this.zoom);
+        const viewportWorld = this.#pointer.position.world;
+        this.worldX = viewportWorld.x;
+        this.worldY = viewportWorld.y;
+        const viewportScreen = this.#pointer.position.viewport;
+        this.viewportX = viewportScreen.x;
+        this.viewportY = viewportScreen.y;
     }
 
-    #onKeyDown(event: KeyboardEvent) {
+    /*#onKeyDown(event: KeyboardEvent) {
         if (event.code == "Escape") {
             this.#toolManager.abort();
         } else if (event.code == "Delete") {

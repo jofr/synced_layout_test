@@ -1,5 +1,5 @@
 import { MetadataCache } from "./metadata_cache";
-import { Layout, LayoutSceneGraph } from "../layout/layout";
+import { Layout } from "../layout/layout";
 import { LayoutNode } from "../layout/nodes";
 import { Vector, BoundingRectangle } from "../util/math";
 
@@ -9,7 +9,7 @@ export class BoundsCache extends MetadataCache {
     }
 
     #isPreProcessNode(node: LayoutNode): boolean {
-        if ((Layout.isType(node, "Shape") && !Layout.isType(node, "Path")) || Layout.isType(node, "Page")) {
+        if (Layout.isType(node, "Shape") || Layout.isType(node, "Page")) {
             return true;
         } else {
             return false;
