@@ -8,9 +8,11 @@ export class MoveViewportTool extends Tool {
 
     startDrag(event: CustomEvent): void {
         console.log("startDrag moveViewport")
-        this.#viewportScreenStart = this._viewport.viewportScreen;
+        this.#viewportScreenStart = new Vector(
+            this._viewport.viewportX,
+            this._viewport.viewportY,
+        )
         this.#pointerStart = event.detail.position.viewport;
-        console.log(this.#pointerStart)
     }
 
     drag(event: CustomEvent): void {
@@ -19,7 +21,9 @@ export class MoveViewportTool extends Tool {
         }
 
         const offset = event.detail.position.viewport.subtract(this.#pointerStart);
-        this._viewport.viewportScreen = this.#viewportScreenStart.add(offset);
+        const viewportScreen = this.#viewportScreenStart.add(offset);
+        this._viewport.viewportX = viewportScreen.x;
+        this._viewport.viewportY = viewportScreen.y;
     }
 
     endDrag(): void {
