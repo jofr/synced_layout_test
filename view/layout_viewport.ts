@@ -44,7 +44,7 @@ export class LayoutViewport extends LitElement {
 
     #startTime: number = performance.now();
     #frames: number = 0;
-    #fps: number = 0;
+    fps: number = 0;
 
     _layout: Layout | null = null;
     _sceneGraph: SceneGraph | null = null;
@@ -106,7 +106,7 @@ export class LayoutViewport extends LitElement {
         this.#frames++;
         const now = performance.now();
         if (now - this.#startTime > 1000) {
-            this.#fps = this.#frames/(now - this.#startTime) * 1000;
+            this.fps = this.#frames/(now - this.#startTime) * 1000;
             this.#startTime = now;
             this.#frames = 0;
         }
@@ -126,12 +126,15 @@ export class LayoutViewport extends LitElement {
 
     }
 
+    _onKeyDown(event: KeyboardEvent): void {
+
+    }
+
     render() {
         this.#calculateTransforms();
 
         return html`
-            <canvas @pointerdown=${this._onPointerDown} @pointermove=${this._onPointerMove} @wheel=${this._onWheel}>
-                <slot></slot>
+            <canvas @pointerdown=${this._onPointerDown} @pointermove=${this._onPointerMove} @wheel=${this._onWheel} @keydown=${this._onKeyDown}>
             </canvas>
         `
     }

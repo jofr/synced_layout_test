@@ -3,12 +3,19 @@ import { LitElement, html, css } from "lit";
 import { customElement, property } from "lit/decorators";
 import { SceneGraph } from "../../scene_graph/scene_graph";
 import { Layout } from "../../layout/layout";
-import { LayoutNode } from "../../layout/nodes";
+import { LayoutNode, TransformNode } from "../../layout/nodes";
 import { BoundingRectangle, Vector } from "../../util/math";
 import { ToolManager } from "./tools/manager";
+import { LayoutSelection } from "../../layout/layout_selection";
+import { NodeObserver } from "../../layout/tools/node_observer";
+import { MarkerRenderer } from "./marker_renderer";
 
 const settings = {
-    zoomFactor: 1.0
+    zoomFactor: 1.0,
+    axesColor: "red",
+    guideColor: "green",
+    selectionColor: "blue",
+    subSelectionColor: "blue"
 }
 
 type PointerButtonState = {
@@ -91,11 +98,11 @@ const createEditorEvent = function(type: EditorEventType, pointerState: PointerS
 
 @customElement("layout-viewport-editor")
 export class LayoutViewportEditor extends LayoutViewport {
-    /*#selection: LayoutSelection = window.selection;
-    #pageNodesObserver: NodeObserver = new NodeObserver(this._sceneGraph, "Page");
+    #selection: LayoutSelection;
+    #pageNodesObserver: NodeObserver = null;
     #hoveredNode: LayoutNode | null = null;
 
-    #markerRenderer: MarkerRenderer = new MarkerRenderer(this._ctx);*/
+    #markerRenderer: MarkerRenderer;
     
     #pointer: PointerState = {
         primary: {
@@ -126,23 +133,23 @@ export class LayoutViewportEditor extends LayoutViewport {
 
     _beforeComposite() {
         this.#dispatchDragAndMoveEvents();
-        /*this.on("beforeComposite", this.#prepareHoveredNodes.bind(this));
-        this.on("beforeComposite", this.#renderAxesAndGrid.bind(this));*/
+        this.#prepareHoveredNodes();
+        this.#renderAxesAndGrid();
     }
 
     _afterComposite() {
-        /*this.on("afterComposite", this.#renderGuidesAndTools.bind(this));
-        this.on("afterComposite", this.#renderDebugInformation.bind(this));*/
+        this.#renderGuidesAndTools();
+        this.#renderDebugInformation();
     }
 
 
     set layout(layout: Layout) {
         super.layout = layout;
 
+        this.#pageNodesObserver = new NodeObserver(this._sceneGraph, "Page");
+        this.#markerRenderer  = new MarkerRenderer(this._ctx);
+        this.#selection = window.selection;
         this.#onPointerUpHandler = this.#onPointerUp.bind(this);
-        //this._canvasElement.addEventListener("wheel", this.#onWheel.bind(this));
-        //this._canvasElement.addEventListener("keydown", this.#onKeyDown.bind(this));
-
         this.#toolManager = new ToolManager(this);
     }
 
@@ -238,7 +245,7 @@ export class LayoutViewportEditor extends LayoutViewport {
         this.viewportY = viewportScreen.y;
     }
 
-    /*#onKeyDown(event: KeyboardEvent) {
+    _onKeyDown(event: KeyboardEvent) {
         if (event.code == "Escape") {
             this.#toolManager.abort();
         } else if (event.code == "Delete") {
@@ -252,7 +259,7 @@ export class LayoutViewportEditor extends LayoutViewport {
         } else if (event.code == "KeyR") {
             this.#toolManager.rotateNode(this.#selection.get()[0] as TransformNode);
         }
-    }*/
+    }
 
     #dispatchDragAndMoveEvents() {
          if (this.#pointer.position.changedSinceLastFrame) {
@@ -265,111 +272,115 @@ export class LayoutViewportEditor extends LayoutViewport {
          }
      }
 
-//     #prepareHoveredNodes() {
-//         if (this.#hoveredNode !== null) {
-//             this.#hoveredNode.metadata.hovered = false;
-//         }
-//         const nodes = this._layout.findNodes(this.#pointer.position.world);
-//         const selection = this.#selection.get();
-//         if (nodes.length > 0 && (selection.length === 0 || selection.length > 1 || nodes[0] !== selection[0])) {
-//             nodes[0].metadata.hovered = true;
-//             this.#hoveredNode = nodes[0];
-//         }
-//     }
+    #prepareHoveredNodes() {
+        if (this.#hoveredNode !== null) {
+            this.#hoveredNode.metadata.hovered = false;
+        }
+        const nodes = this._layout.findNodes(this.#pointer.position.world);
+        const selection = this.#selection.get();
+        if (nodes.length > 0 && (selection.length === 0 || selection.length > 1 || nodes[0] !== selection[0])) {
+            nodes[0].metadata.hovered = true;
+            this.#hoveredNode = nodes[0];
+        }
+    }
 
-//     #renderAxesAndGrid() {
-//         let markers = [];
-//         let origin = this.transform.multiply(new Vector(0, 0)) as Vector;
-//         if (origin.x > 0 && origin.x < this._canvasElement.width) { /* y axis is visible */
-//             markers.push({
-//                 type: "LineMarker",
-//                 strokeStyle: settings.axesColor,
-//                 start: new Vector(origin.x, 0),
-//                 end: new Vector(origin.x, this._canvasElement.height)
-//             });
-//         }
-//         if (origin.y > 0 && origin.y < this._canvasElement.height) { /* x axis is visible */
-//             markers.push({
-//                 type: "LineMarker",
-//                 strokeStyle: settings.axesColor,
-//                 start: new Vector(0, origin.y),
-//                 end: new Vector(this._canvasElement.width, origin.y)
-//             });
-//         }
-//         this.#markerRenderer.renderMarkers(markers);
-//     }
+    #renderAxesAndGrid() {
+        let markers = [];
+        let origin = this.transform.multiply(new Vector(0, 0)) as Vector;
+        if (origin.x > 0 && origin.x < this._canvasElement.width) { /* y axis is visible */
+            markers.push({
+                type: "LineMarker",
+                strokeStyle: settings.axesColor,
+                start: new Vector(origin.x, 0),
+                end: new Vector(origin.x, this._canvasElement.height)
+            });
+        }
+        if (origin.y > 0 && origin.y < this._canvasElement.height) { /* x axis is visible */
+            markers.push({
+                type: "LineMarker",
+                strokeStyle: settings.axesColor,
+                start: new Vector(0, origin.y),
+                end: new Vector(this._canvasElement.width, origin.y)
+            });
+        }
+        this.#markerRenderer.renderMarkers(markers);
+    }
 
-//     #renderPageGuides() {
-//         let markers = [];
-//         for (const page of this.#pageNodesObserver.nodes) {
-//             markers.push({
-//                 type: "RectangleMarker",
-//                 boundingRectangle: page.metadata.boundingRectangle.transform(this.transform)
-//             });
-//         }
-//         this.#markerRenderer.strokeStyle = settings.guideColor;
-//         this.#markerRenderer.renderMarkers(markers);
-//     }
+    #renderPageGuides() {
+        if (!this.#pageNodesObserver) {
+            return;
+        }
+
+        let markers = [];
+        for (const page of this.#pageNodesObserver.nodes) {
+            markers.push({
+                type: "RectangleMarker",
+                boundingRectangle: page.metadata.boundingRectangle.transform(this.transform)
+            });
+        }
+        this.#markerRenderer.strokeStyle = settings.guideColor;
+        this.#markerRenderer.renderMarkers(markers);
+    }
     
-//     #renderSelectionGuides() {
-//         const selection = this.#selection.get();
-//         if (selection.length > 0) {
-//             let selectionMarkers = [];
-//             let boundingRectangles = [];
-//             for (const node of selection) {
-//                 const boundingRectangle = node.metadata.boundingRectangle.transform(this.transform);
-//                 selectionMarkers.push({
-//                     type: "RectangleMarker",
-//                     boundingRectangle: boundingRectangle,
-//                     strokeStyle: selection.length > 1 ? settings.subSelectionColor : settings.selectionColor
-//                 });
-//                 boundingRectangles.push(boundingRectangle);
-//             }
-//             if (selection.length > 1) {
-//                 const enclosingRectangle = BoundingRectangle.AlignedEnclosing(boundingRectangles);
-//                 const expanded = new BoundingRectangle(
-//                     enclosingRectangle.tl.x - 1,
-//                     enclosingRectangle.tl.y - 1,
-//                     enclosingRectangle.tr.x - enclosingRectangle.tl.x + 2,
-//                     enclosingRectangle.br.y - enclosingRectangle.tr.y + 2
-//                 );
-//                 selectionMarkers.push({
-//                     type: "RectangleMarker",
-//                     boundingRectangle: expanded,
-//                     strokeStyle: settings.selectionColor
-//                 });
-//             }
-//             this.#markerRenderer.renderMarkers(selectionMarkers);
-//         }
-//     }
+    #renderSelectionGuides() {
+        const selection = this.#selection.get();
+        if (selection.length > 0) {
+            let selectionMarkers = [];
+            let boundingRectangles = [];
+            for (const node of selection) {
+                const boundingRectangle = node.metadata.boundingRectangle.transform(this.transform);
+                selectionMarkers.push({
+                    type: "RectangleMarker",
+                    boundingRectangle: boundingRectangle,
+                    strokeStyle: selection.length > 1 ? settings.subSelectionColor : settings.selectionColor
+                });
+                boundingRectangles.push(boundingRectangle);
+            }
+            if (selection.length > 1) {
+                const enclosingRectangle = BoundingRectangle.AlignedEnclosing(boundingRectangles);
+                const expanded = new BoundingRectangle(
+                    enclosingRectangle.tl.x - 1,
+                    enclosingRectangle.tl.y - 1,
+                    enclosingRectangle.tr.x - enclosingRectangle.tl.x + 2,
+                    enclosingRectangle.br.y - enclosingRectangle.tr.y + 2
+                );
+                selectionMarkers.push({
+                    type: "RectangleMarker",
+                    boundingRectangle: expanded,
+                    strokeStyle: settings.selectionColor
+                });
+            }
+            this.#markerRenderer.renderMarkers(selectionMarkers);
+        }
+    }
 
-//     #renderGuidesAndTools() {
-//         this.#renderPageGuides();
-//         this.#renderSelectionGuides();
-//         const toolMarkers = this.#toolManager.markers;
-//         if (toolMarkers) {
-//             this.#markerRenderer.renderMarkers(toolMarkers);
-//         }
-//     }
+    #renderGuidesAndTools() {
+        this.#renderPageGuides();
+        this.#renderSelectionGuides();
+        const toolMarkers = this.#toolManager.markers;
+        if (toolMarkers) {
+            this.#markerRenderer.renderMarkers(toolMarkers);
+        }
+    }
 
-//     #renderDebugInformation() {
-//         this._ctx.save();
-//         this._ctx.font = "20px 'Source Sans Pro'";
-//         this._ctx.fillText(this.fps.toFixed(1).toString(), this._canvasElement.width - 40, 20);
-//         this._ctx.restore();
-//     }
+    #renderDebugInformation() {
+        this._ctx.save();
+        this._ctx.font = "20px 'Source Sans Pro'";
+        this._ctx.fillText(this.fps.toFixed(1).toString(), this._canvasElement.width - 40, 20);
+        this._ctx.restore();
+    }
 
-//     get toolManager() {
-//         return this.#toolManager;
-//     }
+    get toolManager() {
+        return this.#toolManager;
+    }
 
-//     get pointer() {
-//         return this.#pointer;
-//     }
+    get pointer() {
+        return this.#pointer;
+    }
 
-//     get selection() {
-//         return this.#selection;
-//     }
+    get selection() {
+        return this.#selection;
+    }
 }
 
 declare global {
