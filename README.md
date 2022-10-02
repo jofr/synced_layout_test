@@ -9,3 +9,5 @@ node test_server.js # to run the test server for synchronization
 then open `http://localhost:1234` in a browser and try it out (synchronize between several browser windows by copying document id, see videos below).
 
 https://user-images.githubusercontent.com/1087312/193462995-dd63fd1d-4a7b-412f-8016-1bd7b01decf9.mov
+
+https://user-images.githubusercontent.com/1087312/193464113-55cf9f58-757d-471a-a3bf-e602b529993d.webm
